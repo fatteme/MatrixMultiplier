@@ -3,7 +3,6 @@ module adder(
         input_b,
         input_a_stb,
         input_b_stb,
-//        add_sub_not,
         output_z_ack,
         clk,
         rst,
@@ -26,8 +25,6 @@ module adder(
   output    [31:0] output_z;
   output    output_z_stb;
   input     output_z_ack;
-
-//  input     add_sub_not;
 
   reg       s_output_z_stb;
   reg       [31:0] s_output_z;
@@ -134,6 +131,7 @@ module adder(
       mantissa_alignment:
       begin
           if (b_m == a_m) begin
+              z_e <= a_e;
               state <= add;
           end else if (a_e < b_e) begin
               a_e <= a_e + 1;
@@ -142,11 +140,13 @@ module adder(
               b_e <= b_e + 1;
               b_m <= b_m >> 1;    
           end
+
       end
       
       add:
       begin
-          if (a_s ^ b_s) begin    
+          z_s <= 1'b0; //to be deleted
+          if (a_s ^ b_s) begin 
               z_m <= a_m + (~b_m) + 1;
           end else begin
               z_m <= a_m + b_m;

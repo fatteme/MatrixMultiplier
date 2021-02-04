@@ -23,7 +23,8 @@ module multiplier_TB();
     .output_z_stb(z_stb),
     .output_z_ack(z_ack));
   initial begin
-    $display("this is a test");
+    $display("this is a test for floating point multiplier");
+    $monitor("result of %b *  %b  = %b", a, b, z);
     a = 0;
     b = 0;
     rst = 1;

@@ -9,7 +9,7 @@ module adder_TB();
   
   always #10 clk=~clk;  // 25MHz
   
-  adder adder_39759952(
+  adder adder_1(
     .clk(clk),
     .rst(rst),
     .input_a(a),
@@ -21,18 +21,25 @@ module adder_TB();
     .output_z(z),
     .output_z_stb(z_stb),
     .output_z_ack(z_ack));
+
   initial begin
     $display("this is a test for floating point adder");
+    $monitor("result of %b +  %b  = %b", a, b, z);
     a = 0;
     b = 0;
     rst = 1;
     #1000
     rst = 0;
-    a = 32'b10111111110100111110010000100110;
-    b = 32'b01000001000010101000001100010010;
+    // 0 + 1
+    // a = {32{1'b0}};
+    // b = {{31{1'b0}},1'b1};
+    
+    // 1 + 1
+    a ={{31{1'b0}},1'b1};
+    b = {{31{1'b0}},1'b1};
     a_stb = 1;
     b_stb = 1;
-    #2000;
+    #3000;
     $stop;  
   end
 endmodule
