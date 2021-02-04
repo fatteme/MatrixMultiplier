@@ -39,8 +39,7 @@ module adder_TB();
     rst = 1;
     #1000
     rst = 0;
-    // 0 + 1
-    a = mtwo;
+    a = one;
     b = one;
     a_stb = 1;
     b_stb = 1;
