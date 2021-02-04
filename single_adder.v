@@ -39,11 +39,13 @@ module adder(
             mantissa_alignment   = 4'd4,
             add   = 4'd5,
             normalise    = 4'd6,
-            pack   = 4'd7,
-            put_z   = 4'd8;
+            normalise_add= 4'd7,
+            normalise_sub= 4'd8,
+            pack   = 4'd9,
+            put_z   = 4'd10;
   reg       [31:0] a, b, z;
   reg       [23:0] a_m, b_m, z_m;
-  reg       [9:0] a_e, b_e, z_e;
+  reg       [7:0] a_e, b_e, z_e;
   reg       a_s, b_s, z_s;
 
   always @(posedge clk)
@@ -130,7 +132,7 @@ module adder(
       
       mantissa_alignment:
       begin
-          if (b_m == a_m) begin
+          if (b_e == a_e) begin
               z_e <= a_e;
               state <= add;
           end else if (a_e < b_e) begin
@@ -145,16 +147,17 @@ module adder(
       
       add:
       begin
-          z_s <= 1'b0; //to be deleted
+          z_s <= a_s;
           if (a_s ^ b_s) begin 
               z_m <= a_m + (~b_m) + 1;
+              state <= normalise_sub;
           end else begin
               z_m <= a_m + b_m;
+              state <= normalise_add;
           end
-          state <= normalise;
       end
 
-      normalise:
+      normalise_add:
       begin
           if (z_m[23]) begin
               z_m <= z_m >> 1;
@@ -163,6 +166,33 @@ module adder(
           state <= pack;
       end
       
+      normalise_sub:
+      begin
+        if (z_m==0) begin
+          z_m <= 0;
+          z_e <= 0;
+          z_s <= 0;
+
+          state <= pack;
+        end else if (z_m[23]) begin
+          z_m <= ~z_m + 1;
+          z_s <= ~a_s;
+          state <= normalise;
+        end else begin
+          state <= normalise;
+        end
+      end
+
+      normalise:
+      begin
+        if (z_m[22])  begin
+          state <= pack;
+        end else begin
+          z_m <= z_m <<1;
+          z_e <= z_e - 1 ;
+        end
+      end
+
       pack:
       begin
         z[22 : 0] <= z_m[22:0];
