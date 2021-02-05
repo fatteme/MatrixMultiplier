@@ -32,17 +32,18 @@ module adder(
   reg       s_input_b_ack;
 
   reg       [3:0] state;
-  parameter get_a         = 4'd0,
-            get_b         = 4'd1,
-            unpack        = 4'd2,
-            special_cases = 4'd3,
-            mantissa_alignment   = 4'd4,
-            add   = 4'd5,
-            normalise    = 4'd6,
-            normalise_add= 4'd7,
-            normalise_sub= 4'd8,
-            pack   = 4'd9,
-            put_z   = 4'd10;
+  parameter get_a               = 4'd0,
+            get_b               = 4'd1,
+            unpack              = 4'd2,
+            special_cases       = 4'd3,
+            mantissa_alignment  = 4'd4,
+            add                 = 4'd5,
+            normalise           = 4'd6,
+            normalise_add       = 4'd7,
+            normalise_sub       = 4'd8,
+            pack                = 4'd9,
+            put_z               = 4'd10;
+  
   reg       [31:0] a, b, z;
   reg       [23:0] a_m, b_m, z_m;
   reg       [7:0] a_e, b_e, z_e;
@@ -87,7 +88,8 @@ module adder(
       special_cases:
       begin
         //if a is NaN or b is NaN return NaN 
-        if ((a_e == 255 && a_m != 0) || (b_e == 255 && b_m != 0)) begin
+        if (isNaN({a_s,a_e,a_m}) || isNaN({b_s,b_e,b_m})) begin
+        //if ((a_e == 255 && a_m != 0) || (b_e == 255 && b_m != 0)) begin
           z[31] <= 1;
           z[30:23] <= 255;
           z[22:0] <= 1;
@@ -95,7 +97,8 @@ module adder(
           
           state <= put_z;
         //if a is inf and b is inf return NaN
-        end else if ((a_e == 255 && a_m == 0) && (b_e == 255 && b_m == 0)) begin
+        end else if (isInf({a_s,a_e,a_m}) && isInf({b_s,b_e,b_m})) begin
+        // end else if ((a_e == 255 && a_m == 0) && (b_e == 255 && b_m == 0)) begin
           z[31] <= 1;
           z[30:23] <= 255;
           z[22:0] <= 1;
@@ -103,29 +106,19 @@ module adder(
 
           state <= put_z;
         //if a is inf or b is zero return a
-        end else if (((a_e == 255) && (a_m == 0)) || ((b_m == 0) && (b_e == 0)))  begin
+        end else if (isInf({a_s,a_e,a_m}) || isZero({b_s,b_e,b_m}))  begin
+        //end else if (((a_e == 255) && (a_m == 0)) || ((b_m == 0) && (b_e == 0)))  begin
           z <= a;
           
           state <= put_z;
         //if b is inf or a in zero return b
-        end else if (((b_e == 255) && (b_m == 0)) || ((a_m == 0) && (a_e == 0))) begin
+        end else if (isInf({b_s,b_e,b_m}) || isZero({a_s,a_e,a_m}))  begin
+        //end else if (((b_e == 255) && (b_m == 0)) || ((a_m == 0) && (a_e == 0))) begin
           z <= b;
 
           state <= put_z;
         
         end else begin
-        //   //Denormalised Number
-        //   if ($signed(a_e) == -127) begin
-        //     a_e <= -126;
-        //   end else begin
-        //     a_m[23] <= 1;
-        //   end
-        //   //Denormalised Number
-        //   if ($signed(b_e) == -127) begin
-        //     b_e <= -126;
-        //   end else begin
-        //     b_m[23] <= 1;
-        //   end
            state <= mantissa_alignment;
         end
       end
@@ -234,5 +227,32 @@ module adder(
   assign input_b_ack = s_input_b_ack;
   assign output_z_stb = s_output_z_stb;
   assign output_z = s_output_z;
+
+  function isNaN(input [31:0]number);begin
+    if (number[30:23] == 255 && number[22:0] != 0) begin
+        isNaN = 1;
+    end else begin
+      isNaN = 0;
+    end
+  end
+  endfunction
+
+  function isInf(input [31:0]number);begin
+    if (number[30:23] == 255 && number[22:0] == 0) begin
+        isInf = 1;
+    end else begin
+      isInf = 0;
+    end
+  end
+  endfunction
+  
+  function isZero(input [31:0]number);begin
+    if (number[30:0] == 0) begin
+        isZero = 1;
+    end else begin
+      isZero = 0;
+    end
+  end
+  endfunction
 
 endmodule
