@@ -1,4 +1,3 @@
-
 `timescale 1ns / 1ns
 module inner_product #(
     parameter number_of_elements = 4,
@@ -8,12 +7,12 @@ module inner_product #(
     reg column_i_ack,
     reg out_o_stb,
     input [word_width * number_of_elements - 1 : 0] row,
-    row_i_stb, 
-    column_i_stb, 
-    out_o_ack,
-    [word_width * number_of_elements - 1 : 0] column, 
-    clk, 
-    rst 
+    input row_i_stb, 
+    input column_i_stb, 
+    input out_o_ack,
+    input [word_width * number_of_elements - 1 : 0] column, 
+    input clk, 
+    input rst 
 );
 
 localparam state_idle = 0;

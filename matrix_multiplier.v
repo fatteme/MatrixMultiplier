@@ -103,14 +103,18 @@ end
 genvar i;
 generate
 	for (i = 0; i<m; i=i+1) begin
-		majid_module #(n)(
-			.vip_result(vip_result[i*word_width +: word_width]),
-			.vip_done(vip_done),
-			.vip_row(matrix_A[i*p*word_width +: p*word_width]),
-			.vip_column(vip_column),
+		inner_product_in_project #(n)(
+			.out(vip_result[i*word_width +: word_width]),
+			.row_i_ack(vip_matrix_a_ack[i]),
+			.column_i_ack(vip_column_ack[i]),
+			.out_o_stb(vip_result_stb[i]),
+			.row(matrix_A[i*p*word_width +: p*word_width]),
+			.row_i_stb(vip_matrix_a_stb),
+			.column_i_stb(vip_column_stb),
+			.out_o_ack(vip_result_ack),
+			.column(vip_column),
 			.clk(clk),
-			.reset(rst),
-			.start(vip_start)
+			.rst(rst)
 		);
 	end
 endgenerate
