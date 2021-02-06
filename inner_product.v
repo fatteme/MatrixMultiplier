@@ -81,6 +81,7 @@ reg index = 1;
 
 adder adder1(
     temp1_vector[index],
+    
     temp_res,
     in1_stb_adder,
     in2_stb_adder,
@@ -133,6 +134,32 @@ always @(posedge clk, negedge rst) begin
                    end
                 end
             state_add_elements: begin
+                if(index != number_of_elements) begin
+                    output_ack_adder <= 0;            
+                    in1_stb_adder <= 1;
+                    in1_stb_adder <= 1;
+                    index <= index + 1;
+                    
+                    state <= state_wait_for_add;
+                end else begin
+                    state <= state_out_is_ready;
+                end
+            end
+            
+            state_wait_for_add: begin
+                if (res_ready) begin
+                    temp_res <= hResult;
+                                
+                    in1_stb_adder <= 0;
+                    in1_stb_adder <= 0;
+                    output_ack_adder <= 1;
+                    state <= state_add_elements;
+                end esle begin
+                    state <= state_wait_for_add;    
+                end
+            end
+
+            state_add_elements: begin
                     output_ack_adder <= 0;            
                     in1_stb_adder <= 1;
                     in1_stb_adder <= 1;
@@ -145,9 +172,12 @@ always @(posedge clk, negedge rst) begin
                     state <= state_out_is_ready;
                 end
                 else if(res_ready[index]) begin
-                    index = index + 1;
-                    temp_res = hResult;
-                    output_ack_adder = 1;
+                    index <= index + 1;
+                    temp_res <= hResult;
+                                
+                    in1_stb_adder <= 0;
+                    in1_stb_adder <= 0;
+                    output_ack_adder <= 1;
                     state = state_add_elements;
                 end
                 else begin

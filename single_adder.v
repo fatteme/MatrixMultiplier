@@ -89,31 +89,25 @@ module adder(
       begin
         //if a is NaN or b is NaN return NaN 
         if (isNaN({a_s,a_e,a_m}) || isNaN({b_s,b_e,b_m})) begin
-        //if ((a_e == 255 && a_m != 0) || (b_e == 255 && b_m != 0)) begin
-          z[31] <= 1;
-          z[30:23] <= 255;
-          z[22:0] <= 1;
-          z[21:0] <= 0;
+          setNaN();
           
           state <= put_z;
         //if a is inf and b is inf return NaN
         end else if (isInf({a_s,a_e,a_m}) && isInf({b_s,b_e,b_m})) begin
-        // end else if ((a_e == 255 && a_m == 0) && (b_e == 255 && b_m == 0)) begin
-          z[31] <= 1;
-          z[30:23] <= 255;
-          z[22:0] <= 1;
-          z[21:0] <= 0;
+          if (a_s ^ b_s) begin
+            setNaN();
+          end else begin
+            setInf(a_s);
+          end
 
           state <= put_z;
         //if a is inf or b is zero return a
         end else if (isInf({a_s,a_e,a_m}) || isZero({b_s,b_e,b_m}))  begin
-        //end else if (((a_e == 255) && (a_m == 0)) || ((b_m == 0) && (b_e == 0)))  begin
           z <= a;
           
           state <= put_z;
         //if b is inf or a in zero return b
         end else if (isInf({b_s,b_e,b_m}) || isZero({a_s,a_e,a_m}))  begin
-        //end else if (((b_e == 255) && (b_m == 0)) || ((a_m == 0) && (a_e == 0))) begin
           z <= b;
 
           state <= put_z;
@@ -254,5 +248,22 @@ module adder(
     end
   end
   endfunction
+
+  task setNaN();
+  begin
+    z[31] <= 1;
+    z[30:23] <= 255;
+    z[22] <= 1;
+    z[21:0] <= 0;      
+  end
+  endtask
+  
+  task setInf(input sign);
+  begin
+    z[31] <= sign;
+    z[30:23] <= 255;
+    z[22:0] <= 0;
+  end
+  endtask
 
 endmodule
