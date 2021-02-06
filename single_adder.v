@@ -49,7 +49,7 @@ module adder(
   reg       [7:0] a_e, b_e, z_e;
   reg       a_s, b_s, z_s;
 
-  always @(posedge clk)
+  always @(posedge clk or negedge rst)
   begin
 
     case(state)
