@@ -28,24 +28,20 @@ wire [0:m-1] vip_column_ack;
 reg vip_matrix_a_stb;
 wire [0:m-1] vip_matrix_a_ack;
 
-localparam WAIT = 2'b00;
-localparam CALC = 2'b01;
-localparam DONE = 2'b10;
-
-localparam LOAD_SUB = 2'00;
-localparam CALC_SUB = 2'01;
-localparam DONE_SUB = 2'10;
+localparam WAIT = 3'b000;
+localparam VIP_LOAD = 3'001;
+localparam VIP_CALC = 3'010;
+localparam VIP_DONE = 3'010;
+localparam DONE = 3'b011;
 
 
-reg [1:0] state = WAIT;
-reg [1:0] next_state = WAIT;
+reg [2:0] state = WAIT;
+reg [2:0] next_state = WAIT;
 
-reg [1:0] substate = WAIT;
-reg [1:0] next_substate = WAIT;
 
 always @(posedge clk or negedge rst) begin
 	if (not rst) begin
-		substate <= LOAD_SUB;
+		substate <= VIP_LOAD;
 		state <= WAIT;
 	end 
 	else begin
@@ -58,7 +54,7 @@ always @(*) begin
 	case(state)
 		WAIT: begin
 			if (a_stb and b_stb) begin
-				next_state <= CALC;
+				next_state <= VIP_LOAD;
 				a_ack <= 0;
 				b_ack <= 0;
 				cw <= 0;
@@ -66,18 +62,41 @@ always @(*) begin
 			end 
 			else next_state <= state;
 		end
-		CALC: begin
-			if (cw == p) begin
-				c_stb <= 1;
-				next_state <= DONE;
+		
+		VIP_LOAD: begin
+			for(index = 0; index < p; index = index + 1)
+				vip_column[index*word_width +: word_width] <= matrix_B[(index*p+cw)*word_width +: word_width];
+			vip_column_stb <= 1;
+			vip_matrix_a_stb <= 1;
+			vip_result_ack <= 0;
+			if (&vip_column_ack and &vip_matrix_a_ack) 
+				next_state <= VIP_CALC;
+			else next_state <= state;
+			end
+		VIP_CALC: begin
+			vip_column_stb <= 0;
+			vip_matrix_a_stb <= 0;
+			if (&vip_result_stb) begin
+				for (index2 = 0; index2 < m; index2 = index2 + 1)
+					matrix_C[(index2*m+ cw)*word_width +: word_width] <= vip_result[index2*word_width +: word_width];
+				vip_result_ack <= 1;
+				next_state <= VIP_DONE;
+				cw <= cw + 1;
 			end
 			else next_state <= state;
 		end
+		VIP_DONE: begin
+			if (cw != n) begin
+				next_state <= VIP_LOAD;
+			end
+			else next_state <= VIP_DONE;
+		end
 		DONE: begin
+			c_stb <= 1;
+			a_ack <= 1;
+			b_ack <= 1;
 			if (c_ack) begin
 				next_state <= WAIT;
-				a_ack <= 1;
-				b_ack <= 1;
 			end
 			else next_state <= state;
 		end
