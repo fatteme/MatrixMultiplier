@@ -32,17 +32,17 @@ module adder(
   reg       s_input_b_ack;
 
   reg       [3:0] state;
-  parameter get_a               = 4'd0,
-            get_b               = 4'd1,
-            unpack              = 4'd2,
-            special_cases       = 4'd3,
-            mantissa_alignment  = 4'd4,
-            add                 = 4'd5,
-            normalise           = 4'd6,
-            normalise_add       = 4'd7,
-            normalise_sub       = 4'd8,
-            pack                = 4'd9,
-            put_z               = 4'd10;
+  localparam  get_a               = 4'd0,
+              get_b               = 4'd1,
+              unpack              = 4'd2,
+              special_cases       = 4'd3,
+              mantissa_alignment  = 4'd4,
+              add                 = 4'd5,
+              normalise           = 4'd6,
+              normalise_add       = 4'd7,
+              normalise_sub       = 4'd8,
+              pack                = 4'd9,
+              put_z               = 4'd10;
   
   reg       [31:0] a, b, z;
   reg       [23:0] a_m, b_m, z_m;
