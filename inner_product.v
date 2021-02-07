@@ -43,28 +43,26 @@ module inner_product #(parameter number_of_elements = 4)(
     wire [word_width-1:0] vector_mult_result [1:number_of_elements];
     reg [2:0] state;
     reg [word_width-1:0] inner_product_result = 32'b0;
-    wire [word_width-1:0] adder_out;
     // multiplier signals
     reg rst_mult = 0;
     reg in1_stb = 0;
     reg column_stb = 0;
-    reg adder_in1_stb = 0;
-    reg adder_in2_stb = 0;
     reg output_ack = 0;
     wire output_stb [1:number_of_elements];
     wire in1_ack_mult[1:number_of_elements];
     wire column_ack_mult[1:number_of_elements];
+    reg output_full_stb = 1;
+    reg res_ack = 0;
+
+    // adder signals
+    wire [word_width-1:0] adder_out;
+    wire adder_out_stb;
     wire adder_in1_ack;
     wire adder_in2_ack;
     reg adder_out_ack = 0;
-    reg output_full_stb = 1;
-
-    // adder signals
+    reg adder_in1_stb = 0;
+    reg adder_in2_stb = 0;
     reg adder_rst = 1;
-    reg res_ack = 0;
-    wire adder_out_stb;
-    reg res_full_ready = 1;
-
 
     integer k,t;
     genvar i,j,l;
