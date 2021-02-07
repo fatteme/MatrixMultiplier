@@ -36,7 +36,7 @@ initial begin
     column_i_stb <= 0;
     wait (out_o_stb);
     $display("output is %b", out);
-    out_o_ack <= 1;
+    // out_o_ack <= 1;
     #5000;
     $stop;  
     $finish;   

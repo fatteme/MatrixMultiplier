@@ -1,7 +1,7 @@
 module matrix_multiplier #(
-	parameter m = 16,
-	parameter p = 16,
-	parameter n = 16,
+	parameter m = 4,
+	parameter p = 4,
+	parameter n = 4,
 	localparam word_width = 32
 	)(
 	output reg [0:m*n*word_width-1] matrix_C,
@@ -21,7 +21,7 @@ module matrix_multiplier #(
 integer cw = 0; // column_count // indicates which column of matrix C is being calculated right now.
 wire [0:m*word_width-1] vip_result;  // vip: vector inner product
 reg vip_result_ack;
-reg [0:m-1] vip_result_stb;
+wire [0:m-1] vip_result_stb;
 reg [0:p*word_width-1] vip_column; // is loaded by column cw of matrix B
 reg vip_column_stb;
 wire [0:m-1] vip_column_ack;
@@ -31,8 +31,8 @@ wire [0:m-1] vip_matrix_a_ack;
 localparam WAIT = 3'b000;
 localparam VIP_LOAD = 3'b001;
 localparam VIP_CALC = 3'b010;
-localparam VIP_DONE = 3'b010;
-localparam DONE = 3'b011;
+localparam VIP_DONE = 3'b011;
+localparam DONE = 3'b100;
 
 
 reg [2:0] state = WAIT;
@@ -43,6 +43,7 @@ always @(posedge clk or negedge rst) begin
 	if (!rst) begin
 		state <= WAIT;
 	end else begin
+		if (state == VIP_CALC & next_state == VIP_DONE) cw <= cw + 1;
 		state <= next_state;
 	end 
 end
@@ -53,23 +54,26 @@ always @(*) begin
 		WAIT: begin
 			if (a_stb & b_stb) begin
 				next_state <= VIP_LOAD;
-				a_ack <= 0;
-				b_ack <= 0;
+				a_ack <= 1;
+				b_ack <= 1;
 				cw <= 0;
 				c_stb <= 0;
-			end else next_state <= state;
+			end else begin
+				a_ack <= 0;
+				a_ack <= 0;
+				next_state <= state;
+			end 
 		end
 		
-		VIP_LOAD: 
-			begin
-				for(index = 0; index < p; index = index + 1)
-					vip_column[index*word_width +: word_width] <= matrix_B[(index*p+cw)*word_width +: word_width];
-				vip_column_stb <= 1;
-				vip_matrix_a_stb <= 1;
-				vip_result_ack <= 0;
-				if (&vip_column_ack & &vip_matrix_a_ack) 
-					next_state <= VIP_CALC;
-				else next_state <= state;
+		VIP_LOAD: begin
+			for(index = 0; index < p; index = index + 1)
+				vip_column[index*word_width +: word_width] <= matrix_B[(index*p+cw)*word_width +: word_width];
+			vip_column_stb <= 1;
+			vip_matrix_a_stb <= 1;
+			vip_result_ack <= 0;
+			if ((&vip_column_ack) & (&vip_matrix_a_ack)) 
+				next_state <= VIP_CALC;
+			else next_state <= state;
 		end
 		VIP_CALC: begin
 			vip_column_stb <= 0;
@@ -79,13 +83,13 @@ always @(*) begin
 					matrix_C[(index2*m+ cw)*word_width +: word_width] <= vip_result[index2*word_width +: word_width];
 				vip_result_ack <= 1;
 				next_state <= VIP_DONE;
-				cw <= cw + 1;
 			end else next_state <= state;
 		end
 		VIP_DONE: begin
 			if (cw != n) begin
 				next_state <= VIP_LOAD;
-			end else next_state <= VIP_DONE;
+				vip_result_ack <= 1;
+			end else next_state <= DONE;
 		end
 		DONE: begin
 			c_stb <= 1;
@@ -103,7 +107,7 @@ end
 genvar i;
 generate
 	for (i = 0; i<m; i=i+1) begin
-		inner_product_in_project #(n)(
+		inner_product #(n) vip(
 			.out(vip_result[i*word_width +: word_width]),
 			.row_i_ack(vip_matrix_a_ack[i]),
 			.column_i_ack(vip_column_ack[i]),
