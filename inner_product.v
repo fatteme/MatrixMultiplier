@@ -100,17 +100,17 @@ module inner_product #(parameter number_of_elements = 4)(
 
     integer index = 1;
     adder adder1(
-        vector_mult_result[index],
-        inner_product_result,
-        in1_stb_adder,
-        column_stb_adder,
-        output_ack_adder,
-        clk,
-        rst_adder,
-        hResult,
-        res_ready,
-        in1_ack_adder,
-        column_ack_adder
+        .input_a(vector_mult_result[index]),
+        .input_b(inner_product_result),
+        .input_a_stb(in1_stb_adder),
+        .input_b_stb(column_stb_adder),
+        .output_z_ack(output_ack_adder),
+        .clk(clk),
+        .rst(rst_adder),
+        .output_z(hResult),
+        .output_z_stb(res_ready),
+        .input_a_ack(in1_ack_adder),
+        .input_b_ack(column_ack_adder)
     );
 
     always @(posedge clk, negedge rst) begin
