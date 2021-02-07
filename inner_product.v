@@ -40,7 +40,7 @@ module inner_product #(parameter number_of_elements = 4)(
                 state_wait_for_add  = 3'd4,
                 state_out_is_ready  = 3'd5;
 
-    wire [word_width-1:0] temp1_vector [1:number_of_elements];
+    wire [word_width-1:0] vector_mult_result [1:number_of_elements];
     reg [2:0] state;
     reg [word_width-1:0] temp_res = 32'b0;
     wire [word_width-1:0] hResult;
@@ -79,7 +79,7 @@ module inner_product #(parameter number_of_elements = 4)(
                     output_ack,
                     clk,
                     rst_mult,
-                    temp1_vector[i],
+                    vector_mult_result[i],
                     output_stb[i],
                     in1_ack_mult[i],
                     column_ack_mult[i]
@@ -100,7 +100,7 @@ module inner_product #(parameter number_of_elements = 4)(
 
     integer index = 1;
     adder adder1(
-        temp1_vector[index],
+        vector_mult_result[index],
         temp_res,
         in1_stb_adder,
         column_stb_adder,
