@@ -16,15 +16,19 @@ module inner_product #(parameter number_of_elements = 4)(
 
     localparam word_width = 32;
     
-    output [word_width-1:0] out; 
-    output row_i_ack;
-    output column_i_ack;
-    output out_o_stb;
+    
     input [word_width * number_of_elements - 1 : 0] row;
-    input row_i_stb; 
-    input column_i_stb; 
-    input out_o_ack;
+    input  row_i_stb; 
+    output row_i_ack;
+    
     input [word_width * number_of_elements - 1 : 0] column; 
+    input  column_i_stb; 
+    output column_i_ack;
+    
+    input  out_o_ack;
+    output out_o_stb;
+    output [word_width-1:0] out; 
+    
     input clk; 
     input rst; 
 
@@ -43,7 +47,7 @@ module inner_product #(parameter number_of_elements = 4)(
     reg [2:0] state;
     reg [word_width-1:0] inner_product_result = 32'b0;
     
-    // multiplier signals
+    // fp_mult signals
     wire [word_width-1:0] mul_out [1:number_of_elements];
     wire mul_out_stb [1:number_of_elements];
     wire mul_in1_ack [1:number_of_elements];
@@ -55,7 +59,7 @@ module inner_product #(parameter number_of_elements = 4)(
     reg mul_out_full_stb = 1;
     reg res_ack = 0;
 
-    // adder signals
+    // fp_add signals
     wire [word_width-1:0] adder_out;
     wire adder_out_stb;
     wire adder_in1_ack;
