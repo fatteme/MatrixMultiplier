@@ -72,32 +72,29 @@ module inner_product #(parameter number_of_elements = 4)(
     integer k,t;
     genvar i,j,l;
     generate
-        for(i=1; i <= number_of_elements ; i=i+1) 
-            begin
-                multiplier fp_mult(
-                    .input_a(row[word_width * i - 1 : word_width * (i-1)]),
-                    .input_b(column[word_width * i - 1 : word_width * (i-1)]),
-                    .input_a_stb(mul_in1_stb),
-                    .input_b_stb(mul_in2_stb),
-                    .output_z_ack(mul_out_ack),
-                    .clk(clk),
-                    .rst(mul_rst),
-                    .output_z(mul_out[i]),
-                    .output_z_stb(mul_out_stb[i]),
-                    .input_a_ack(mul_in1_ack[i]),
-                    .input_b_ack(mul_in2_ack[i])
-                );
-
-                
-            end
+        for(i=1; i <= number_of_elements ; i=i+1) begin
+            multiplier fp_mult(
+                .input_a(row[word_width * i - 1 : word_width * (i-1)]),
+                .input_b(column[word_width * i - 1 : word_width * (i-1)]),
+                .input_a_stb(mul_in1_stb),
+                .input_b_stb(mul_in2_stb),
+                .output_z_ack(mul_out_ack),
+                .clk(clk),
+                .rst(mul_rst),
+                .output_z(mul_out[i]),
+                .output_z_stb(mul_out_stb[i]),
+                .input_a_ack(mul_in1_ack[i]),
+                .input_b_ack(mul_in2_ack[i])
+            );  
+        end
     endgenerate
     integer g =0;
     always @* begin
         g = 1; 
         mul_out_full_stb = 1;
-            for(g=1;g<=number_of_elements;g=g+1)begin
-                mul_out_full_stb = mul_out_full_stb & mul_out_stb[g];
-            end
+        for(g=1;g<=number_of_elements;g=g+1)begin
+            mul_out_full_stb = mul_out_full_stb & mul_out_stb[g];
+        end
     end
 
 
@@ -117,8 +114,7 @@ module inner_product #(parameter number_of_elements = 4)(
     );
 
     always @(posedge clk, negedge rst) begin
-        if(!rst)
-        begin
+        if(!rst) begin
             state <= state_idle;
             mul_rst <= 1;
             adder_rst <= 1;
