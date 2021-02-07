@@ -69,7 +69,7 @@ module inner_product #(parameter number_of_elements = 4)(
     generate
         for(i=1; i <= number_of_elements ; i=i+1) 
             begin
-                multiplier multiplieri(
+                multiplier fp_mult(
                     row[32 * i - 1 : 32 * (i-1)],
                     column[32 * i - 1 : 32 * (i-1)],
                     in1_stb,
@@ -97,7 +97,7 @@ module inner_product #(parameter number_of_elements = 4)(
 
 
     integer index = 1;
-    adder adder1(
+    adder fp_add(
         .input_a(vector_mult_result[index]),
         .input_b(inner_product_result),
         .input_a_stb(adder_in1_stb),
