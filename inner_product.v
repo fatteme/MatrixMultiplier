@@ -75,8 +75,8 @@ module inner_product #(parameter number_of_elements = 4)(
         for(i=1; i <= number_of_elements ; i=i+1) 
             begin
                 multiplier fp_mult(
-                    .input_a(row[32 * i - 1 : 32 * (i-1)]),
-                    .input_b(column[32 * i - 1 : 32 * (i-1)]),
+                    .input_a(row[word_width * i - 1 : word_width * (i-1)]),
+                    .input_b(column[word_width * i - 1 : word_width * (i-1)]),
                     .input_a_stb(mul_in1_stb),
                     .input_b_stb(mul_in2_stb),
                     .output_z_ack(mul_out_ack),
@@ -130,49 +130,51 @@ module inner_product #(parameter number_of_elements = 4)(
         else begin
             case (state)
                 state_idle: begin
-                        if (row_i_stb & column_i_stb & out_o_ack) begin
-                            state <= state_mult_elements;
-                            mul_in1_stb <= 1;
-                            mul_in2_stb <= 1;
-                            mul_rst <= 0;
-                            // ##
-                            s_row_i_ack <= 1;
-                            s_column_i_ack <= 1;
-                        end
-                        else begin
-                            state <= state_idle;
-                            mul_rst <= 1;
-                            mul_out_ack <= 0;
-                            res_ack <= 0;
-                            mul_in1_stb <= 0;
-                            mul_in2_stb <= 0;
-                            // ##
-                            s_row_i_ack <= 0;
-                            s_column_i_ack <= 0;
-                            s_out_o_stb <= 0;
-                        end
-                    end
-                state_mult_elements: begin
+                    if (row_i_stb & column_i_stb & out_o_ack) begin
+                        state <= state_mult_elements;
                         mul_in1_stb <= 1;
                         mul_in2_stb <= 1;
-
-                        mul_out_ack <= 0;
-                        state <= state_wait_for_mult;
-                    end
-                state_wait_for_mult: begin
-                    if(mul_out_full_stb) begin
-                            state <= state_add_elements;
-                            mul_rst <= 1;
-                            adder_rst <= 0;
-                            inner_product_result <= 0;
-                            adder_in1_stb <= 1;
-                            adder_in2_stb <= 1;
+                        mul_rst <= 0;
+                        // ##
+                        s_row_i_ack <= 1;
+                        s_column_i_ack <= 1;
                     end
                     else begin
-                            state <= state_wait_for_mult;
+                        state <= state_idle;
+                        mul_rst <= 1;
+                        mul_out_ack <= 0;
+                        res_ack <= 0;
+                        mul_in1_stb <= 0;
+                        mul_in2_stb <= 0;
+                        // ##
+                        s_row_i_ack <= 0;
+                        s_column_i_ack <= 0;
+                        s_out_o_stb <= 0;
                     end
+                end
+                
+                state_mult_elements: begin
+                    mul_in1_stb <= 1;
+                    mul_in2_stb <= 1;
+                    mul_out_ack <= 0;
+                    state <= state_wait_for_mult;
+                end
+                
+                state_wait_for_mult: begin
+                    if(mul_out_full_stb) begin
+                        state <= state_add_elements;
+                        mul_rst <= 1;
+                        adder_rst <= 0;
+                        inner_product_result <= 0;
+                        adder_in1_stb <= 1;
+                        adder_in2_stb <= 1;
                     end
-            state_add_elements: begin
+                    else begin
+                        state <= state_wait_for_mult;
+                    end
+                end
+                
+                state_add_elements: begin
                     if(index != number_of_elements+1) begin
                         adder_rst <= 0;
                         adder_out_ack <= 0;            
@@ -184,6 +186,7 @@ module inner_product #(parameter number_of_elements = 4)(
                         state <= state_out_is_ready;
                     end
                 end
+                
                 state_wait_for_add: begin
                     if (adder_out_stb) begin
                         inner_product_result <= adder_out;
@@ -198,6 +201,7 @@ module inner_product #(parameter number_of_elements = 4)(
                         state <= state_wait_for_add;    
                     end
                 end
+                
                 state_out_is_ready: begin
                     state <= state_idle;
                     mul_out_ack <= 0;
@@ -207,12 +211,14 @@ module inner_product #(parameter number_of_elements = 4)(
                     // ##
                     s_out_o_stb <= 1;
                 end
+                
                 default: begin
-                        state <= state_idle;
-                    end
+                    state <= state_idle;
+                end
             endcase
         end
     end
+
     assign out = inner_product_result;
     assign row_i_ack = s_row_i_ack;
     assign column_i_ack = s_column_i_ack;
