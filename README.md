@@ -1,5 +1,10 @@
 # MatrixMultiplier
 DSD Project Fall 2020
 
-
-This is written in verilog
+Contributors:
+ - Reza Abdollahzadeh
+ - Arshia Akhavan
+ - Fateme KhasheE
+ - Majid Taherkhani
+ - Ali Balapour
+ - Reza Amini
