@@ -249,7 +249,7 @@ module adder(
   end
   endfunction
 
-  task setNaN();
+  task setNaN;
   begin
     z[31] <= 1;
     z[30:23] <= 255;
