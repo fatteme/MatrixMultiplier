@@ -70,17 +70,17 @@ module inner_product #(parameter number_of_elements = 4)(
         for(i=1; i <= number_of_elements ; i=i+1) 
             begin
                 multiplier fp_mult(
-                    row[32 * i - 1 : 32 * (i-1)],
-                    column[32 * i - 1 : 32 * (i-1)],
-                    in1_stb,
-                    column_stb,
-                    output_ack,
-                    clk,
-                    rst_mult,
-                    vector_mult_result[i],
-                    output_stb[i],
-                    in1_ack_mult[i],
-                    column_ack_mult[i]
+                    .input_a(row[32 * i - 1 : 32 * (i-1)]),
+                    .input_b(column[32 * i - 1 : 32 * (i-1)]),
+                    .input_a_stb(in1_stb),
+                    .input_b_stb(column_stb),
+                    .output_z_ack(output_ack),
+                    .clk(clk),
+                    .rst(rst_mult),
+                    .output_z(vector_mult_result[i]),
+                    .output_z_stb(output_stb[i]),
+                    .input_a_ack(in1_ack_mult[i]),
+                    .input_b_ack(column_ack_mult[i])
                 );
 
                 
