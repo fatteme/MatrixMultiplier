@@ -31,25 +31,18 @@ end
 
 initial
 begin
-    // $readmemb("matrix_op.txt", ROM_3);
     rst = 1;
+
     $display("loading rom 3");
-    ROM_3[0] = 32'b01000000111000000000000000000000; // 7
-    ROM_3[1] = 32'b01000001001000000000000000000000; // 10
-    ROM_3[2] = 32'b01000001011100000000000000000000; // 15
-    ROM_3[3] = 32'b01000001101100000000000000000000; // 22
+    $readmemb("matrix_op.txt", ROM_3);
     for(k = 0; k < ww_square; k = k + 1) begin
         matrix_3[k * 32 +: 32] = ROM_3[k];
     end
 
     #20;
 
-    // $readmemb("matrix_1.txt", ROM_1);
     $display("loading rom 1");
-    ROM_1[0] = 32'b00111111100000000000000000000000; // 1
-    ROM_1[1] = 32'b01000000000000000000000000000000; // 2
-    ROM_1[2] = 32'b01000000010000000000000000000000; // 3
-    ROM_1[3] = 32'b01000000100000000000000000000000; // 4  
+    $readmemb("matrix_1.txt", ROM_1);
     for(i = 0; i < ww_square; i = i + 1) begin
         matrix_1[i * 32 +: 32] = ROM_1[i];
     end
@@ -57,12 +50,8 @@ begin
 
     #20;
 
-    // $readmemb("matrix_2.txt", ROM_2);
     $display("loading rom 2");
-    ROM_2[0] = 32'b00111111100000000000000000000000; // 1
-    ROM_2[1] = 32'b01000000000000000000000000000000; // 2
-    ROM_2[2] = 32'b01000000010000000000000000000000; // 3
-    ROM_2[3] = 32'b01000000100000000000000000000000; // 4
+    $readmemb("matrix_2.txt", ROM_2);
     for(j = 0; j < ww_square; j = j + 1) begin
         matrix_2[j * 32 +: 32] = ROM_2[j];
     end
