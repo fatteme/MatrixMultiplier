@@ -1,19 +1,5 @@
 `timescale 1ns / 1ns
-// module inner_product #(
-//     parameter number_of_elements = 4,
-//     localparam word_width = 32 )(
-//     output [word_width-1:0] out, 
-//     reg row_i_ack,
-//     reg column_i_ack,
-//     reg out_o_stb,
-//     input [word_width * number_of_elements - 1 : 0] row,
-//     input row_i_stb, 
-//     input column_i_stb, 
-//     input out_o_ack,
-//     input [word_width * number_of_elements - 1 : 0] column, 
-//     input clk, 
-//     input rst 
-// );
+
 module inner_product #(parameter number_of_elements = 4)(
     out, 
     row_i_ack,
