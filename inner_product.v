@@ -1,19 +1,50 @@
 `timescale 1ns / 1ns
-module inner_product #(
-    parameter number_of_elements = 4,
-    localparam word_width = 32 )(
-    output [word_width-1:0] out, 
-    reg row_i_ack,
-    reg column_i_ack,
-    reg out_o_stb,
-    input [word_width * number_of_elements - 1 : 0] row,
-    input row_i_stb, 
-    input column_i_stb, 
-    input out_o_ack,
-    input [word_width * number_of_elements - 1 : 0] column, 
-    input clk, 
-    input rst 
+// module inner_product #(
+//     parameter number_of_elements = 4,
+//     localparam word_width = 32 )(
+//     output [word_width-1:0] out, 
+//     reg row_i_ack,
+//     reg column_i_ack,
+//     reg out_o_stb,
+//     input [word_width * number_of_elements - 1 : 0] row,
+//     input row_i_stb, 
+//     input column_i_stb, 
+//     input out_o_ack,
+//     input [word_width * number_of_elements - 1 : 0] column, 
+//     input clk, 
+//     input rst 
+// );
+module inner_product #(parameter number_of_elements = 4)(
+    out, 
+    row_i_ack,
+    column_i_ack,
+    out_o_stb,
+    row,
+    row_i_stb, 
+    column_i_stb, 
+    out_o_ack,
+    column, 
+    clk, 
+    rst 
 );
+localparam word_width = 32;
+    
+    output [word_width-1:0] out; 
+    output row_i_ack;
+    output column_i_ack;
+    output out_o_stb;
+    input [word_width * number_of_elements - 1 : 0] row;
+    input row_i_stb; 
+    input column_i_stb; 
+    input out_o_ack;
+    input [word_width * number_of_elements - 1 : 0] column; 
+    input clk; 
+    input rst; 
+
+reg s_row_i_ack;
+reg s_column_i_ack;
+reg s_out_o_stb;
+
 
 localparam state_idle = 0;
 localparam state_mult_elements = 1;
@@ -102,9 +133,9 @@ always @(posedge clk, negedge rst) begin
         rst_mult <= 1;
         rst_adder <= 1;
         // ##
-        row_i_ack <= 0;
-        column_i_ack <= 0;
-        out_o_stb <= 0;
+        s_row_i_ack <= 0;
+        s_column_i_ack <= 0;
+        s_out_o_stb <= 0;
     end
     else begin
         case (state)
@@ -115,8 +146,8 @@ always @(posedge clk, negedge rst) begin
                         column_stb <= 1;
                         rst_mult <= 0;
                         // ##
-                        row_i_ack <= 1;
-                        column_i_ack <= 1;
+                        s_row_i_ack <= 1;
+                        s_column_i_ack <= 1;
                     end
                     else begin
                         state <= state_idle;
@@ -126,9 +157,9 @@ always @(posedge clk, negedge rst) begin
                         in1_stb <= 0;
                         column_stb <= 0;
                         // ##
-                        row_i_ack <= 0;
-                        column_i_ack <= 0;
-                        out_o_stb <= 0;
+                        s_row_i_ack <= 0;
+                        s_column_i_ack <= 0;
+                        s_out_o_stb <= 0;
                     end
                 end
             state_mult_elements: begin
@@ -184,7 +215,7 @@ always @(posedge clk, negedge rst) begin
                 in1_stb <= 0;
                 column_stb <= 0;
                 // ##
-                out_o_stb <= 1;
+                s_out_o_stb <= 1;
             end
             default: begin
                     state <= state_idle;
@@ -193,6 +224,10 @@ always @(posedge clk, negedge rst) begin
     end
 end
 assign out = temp_res;
+assign row_i_ack = s_row_i_ack;
+assign column_i_ack = s_column_i_ack;
+assign out_o_stb = s_out_o_stb;
+
 endmodule
 
 
