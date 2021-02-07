@@ -42,7 +42,7 @@ module inner_product #(parameter number_of_elements = 4)(
 
     wire [word_width-1:0] vector_mult_result [1:number_of_elements];
     reg [2:0] state;
-    reg [word_width-1:0] temp_res = 32'b0;
+    reg [word_width-1:0] inner_product_result = 32'b0;
     wire [word_width-1:0] hResult;
     // multiplier signals
     reg rst_mult = 0;
@@ -101,7 +101,7 @@ module inner_product #(parameter number_of_elements = 4)(
     integer index = 1;
     adder adder1(
         vector_mult_result[index],
-        temp_res,
+        inner_product_result,
         in1_stb_adder,
         column_stb_adder,
         output_ack_adder,
@@ -161,7 +161,7 @@ module inner_product #(parameter number_of_elements = 4)(
                             state <= state_add_elements;
                             rst_mult <= 1;
                             rst_adder <= 0;
-                            temp_res <= 0;
+                            inner_product_result <= 0;
                             in1_stb_adder <= 1;
                             column_stb_adder <= 1;
                     end
@@ -183,7 +183,7 @@ module inner_product #(parameter number_of_elements = 4)(
                 end
                 state_wait_for_add: begin
                     if (res_ready) begin
-                        temp_res <= hResult;
+                        inner_product_result <= hResult;
                         index <= index + 1;
                         in1_stb_adder <= 0;
                         in1_stb_adder <= 0;
@@ -210,7 +210,7 @@ module inner_product #(parameter number_of_elements = 4)(
             endcase
         end
     end
-    assign out = temp_res;
+    assign out = inner_product_result;
     assign row_i_ack = s_row_i_ack;
     assign column_i_ack = s_column_i_ack;
     assign out_o_stb = s_out_o_stb;
