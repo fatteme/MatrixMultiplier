@@ -40,10 +40,9 @@ module inner_product #(parameter number_of_elements = 4)(
                 state_wait_for_add  = 3'd4,
                 state_out_is_ready  = 3'd5;
 
-    wire [word_width-1:0] temp1_vector [1:number_of_elements];
+    wire [word_width-1:0] mult_results [1:number_of_elements];
     reg [2:0] state;
-    reg [word_width-1:0] temp_res = 32'b0;
-    wire [word_width-1:0] hResult;
+    reg [word_width-1:0] inner_product_result = 32'b0;
     // multiplier signals
     reg rst_mult = 0;
     reg in1_stb = 0;
@@ -56,13 +55,14 @@ module inner_product #(parameter number_of_elements = 4)(
     reg res_ack = 0;
 
     // adder signals
+    wire [word_width-1:0] adder_output;
     wire adder_in1_ack;
     wire adder_column_ack;
     wire adder_output_stb;
-    reg adder_output_ack = 0;
-    reg adder_in1_stb = 0;
-    reg adder_column_stb = 0;
-    reg adder_rst = 1;
+    reg  adder_output_ack = 0;
+    reg  adder_in1_stb = 0;
+    reg  adder_column_stb = 0;
+    reg  adder_rst = 1;
 
 
     integer k,t;
@@ -78,7 +78,7 @@ module inner_product #(parameter number_of_elements = 4)(
                     output_ack,
                     clk,
                     rst_mult,
-                    temp1_vector[i],
+                    mult_results[i],
                     output_stb[i],
                     in1_ack_mult[i],
                     column_ack_mult[i]
@@ -99,14 +99,13 @@ module inner_product #(parameter number_of_elements = 4)(
 
     integer index = 1;
     adder adder1(
-        temp1_vector[index],
-        temp_res,
+        mult_results[index],
+        inner_product_result,
         adder_in1_stb,
         adder_column_stb,
         adder_output_ack,
         clk,
         adder_rst,
-        hResult,
         adder_output_stb,
         adder_in1_ack,
         adder_column_ack
@@ -114,14 +113,15 @@ module inner_product #(parameter number_of_elements = 4)(
 
     always @(posedge clk, negedge rst) begin
         if(!rst)
+            adder_rst <= 1;
         begin
             state <= state_idle;
             rst_mult <= 1;
-            adder_rst <= 1;
             // ##
             s_row_i_ack <= 0;
             s_column_i_ack <= 0;
-            s_out_o_stb <= 0;
+            s_out_o_stb <=        adder_output,   
+
         end
         else begin
             case (state)
@@ -160,7 +160,7 @@ module inner_product #(parameter number_of_elements = 4)(
                             state <= state_add_elements;
                             rst_mult <= 1;
                             adder_rst <= 0;
-                            temp_res <= 0;
+                            inner_product_result <= 0;
                             adder_in1_stb <= 1;
                             adder_column_stb <= 1;
                     end
@@ -182,7 +182,6 @@ module inner_product #(parameter number_of_elements = 4)(
                 end
                 state_wait_for_add: begin
                     if (adder_output_stb) begin
-                        temp_res <= hResult;
                         index <= index + 1;
                         adder_in1_stb <= 0;
                         adder_in1_stb <= 0;
@@ -195,12 +194,14 @@ module inner_product #(parameter number_of_elements = 4)(
                     end
                 end
                 state_out_is_ready: begin
+                        inner_product_result <= adder_output;
                     state <= state_idle;
                     output_ack <= 0;
                     res_ack <= 0;
-                    in1_stb <= 0;
-                    column_stb <= 0;
-                    // ##
+     
+                     in1_stb <= 0;
+                     column_stb <= 0;
+                     // ##
                     s_out_o_stb <= 1;
                 end
                 default: begin
@@ -209,7 +210,7 @@ module inner_product #(parameter number_of_elements = 4)(
             endcase
         end
     end
-    assign out = temp_res;
+    assign out = inner_product_result;
     assign row_i_ack = s_row_i_ack;
     assign column_i_ack = s_column_i_ack;
     assign out_o_stb = s_out_o_stb;
