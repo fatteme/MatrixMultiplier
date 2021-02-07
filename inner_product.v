@@ -48,22 +48,21 @@ module inner_product #(parameter number_of_elements = 4)(
     reg rst_mult = 0;
     reg in1_stb = 0;
     reg column_stb = 0;
-    reg in1_stb_adder = 0;
-    reg column_stb_adder = 0;
     reg output_ack = 0;
     wire output_stb [1:number_of_elements];
     wire in1_ack_mult[1:number_of_elements];
     wire column_ack_mult[1:number_of_elements];
-    wire in1_ack_adder;
-    wire column_ack_adder;
-    reg output_ack_adder = 0;
     reg output_full_stb = 1;
+    reg res_ack = 0;
 
     // adder signals
-    reg rst_adder = 1;
-    reg res_ack = 0;
-    wire res_ready;
-    reg res_full_ready = 1;
+    wire adder_in1_ack;
+    wire adder_column_ack;
+    wire adder_output_stb;
+    reg adder_output_ack = 0;
+    reg adder_in1_stb = 0;
+    reg adder_column_stb = 0;
+    reg adder_rst = 1;
 
 
     integer k,t;
@@ -102,15 +101,15 @@ module inner_product #(parameter number_of_elements = 4)(
     adder adder1(
         temp1_vector[index],
         temp_res,
-        in1_stb_adder,
-        column_stb_adder,
-        output_ack_adder,
+        adder_in1_stb,
+        adder_column_stb,
+        adder_output_ack,
         clk,
-        rst_adder,
+        adder_rst,
         hResult,
-        res_ready,
-        in1_ack_adder,
-        column_ack_adder
+        adder_output_stb,
+        adder_in1_ack,
+        adder_column_ack
     );
 
     always @(posedge clk, negedge rst) begin
@@ -118,7 +117,7 @@ module inner_product #(parameter number_of_elements = 4)(
         begin
             state <= state_idle;
             rst_mult <= 1;
-            rst_adder <= 1;
+            adder_rst <= 1;
             // ##
             s_row_i_ack <= 0;
             s_column_i_ack <= 0;
@@ -160,10 +159,10 @@ module inner_product #(parameter number_of_elements = 4)(
                     if(output_full_stb) begin
                             state <= state_add_elements;
                             rst_mult <= 1;
-                            rst_adder <= 0;
+                            adder_rst <= 0;
                             temp_res <= 0;
-                            in1_stb_adder <= 1;
-                            column_stb_adder <= 1;
+                            adder_in1_stb <= 1;
+                            adder_column_stb <= 1;
                     end
                     else begin
                             state <= state_wait_for_mult;
@@ -171,10 +170,10 @@ module inner_product #(parameter number_of_elements = 4)(
                     end
             state_add_elements: begin
                     if(index != number_of_elements+1) begin
-                        rst_adder <= 0;
-                        output_ack_adder <= 0;            
-                        in1_stb_adder <= 1;
-                        column_stb_adder <= 1;
+                        adder_rst <= 0;
+                        adder_output_ack <= 0;            
+                        adder_in1_stb <= 1;
+                        adder_column_stb <= 1;
                                         
                         state <= state_wait_for_add;
                     end else begin
@@ -182,13 +181,13 @@ module inner_product #(parameter number_of_elements = 4)(
                     end
                 end
                 state_wait_for_add: begin
-                    if (res_ready) begin
+                    if (adder_output_stb) begin
                         temp_res <= hResult;
                         index <= index + 1;
-                        in1_stb_adder <= 0;
-                        in1_stb_adder <= 0;
-                        rst_adder <= 1;
-                        output_ack_adder <= 1;
+                        adder_in1_stb <= 0;
+                        adder_in1_stb <= 0;
+                        adder_rst <= 1;
+                        adder_output_ack <= 1;
                         state <= state_add_elements;
                     end 
                     else begin
