@@ -43,26 +43,26 @@ module inner_product #(parameter number_of_elements = 4)(
     wire [word_width-1:0] vector_mult_result [1:number_of_elements];
     reg [2:0] state;
     reg [word_width-1:0] inner_product_result = 32'b0;
-    wire [word_width-1:0] hResult;
+    wire [word_width-1:0] adder_out;
     // multiplier signals
     reg rst_mult = 0;
     reg in1_stb = 0;
     reg column_stb = 0;
-    reg in1_stb_adder = 0;
-    reg column_stb_adder = 0;
+    reg adder_in1_stb = 0;
+    reg adder_in2_stb = 0;
     reg output_ack = 0;
     wire output_stb [1:number_of_elements];
     wire in1_ack_mult[1:number_of_elements];
     wire column_ack_mult[1:number_of_elements];
-    wire in1_ack_adder;
-    wire column_ack_adder;
-    reg output_ack_adder = 0;
+    wire adder_in1_ack;
+    wire adder_in2_ack;
+    reg adder_out_ack = 0;
     reg output_full_stb = 1;
 
     // adder signals
-    reg rst_adder = 1;
+    reg adder_rst = 1;
     reg res_ack = 0;
-    wire res_ready;
+    wire adder_out_stb;
     reg res_full_ready = 1;
 
 
@@ -102,15 +102,15 @@ module inner_product #(parameter number_of_elements = 4)(
     adder adder1(
         .input_a(vector_mult_result[index]),
         .input_b(inner_product_result),
-        .input_a_stb(in1_stb_adder),
-        .input_b_stb(column_stb_adder),
-        .output_z_ack(output_ack_adder),
+        .input_a_stb(adder_in1_stb),
+        .input_b_stb(adder_in2_stb),
+        .output_z_ack(adder_out_ack),
         .clk(clk),
-        .rst(rst_adder),
-        .output_z(hResult),
-        .output_z_stb(res_ready),
-        .input_a_ack(in1_ack_adder),
-        .input_b_ack(column_ack_adder)
+        .rst(adder_rst),
+        .output_z(adder_out),
+        .output_z_stb(adder_out_stb),
+        .input_a_ack(adder_in1_ack),
+        .input_b_ack(adder_in2_ack)
     );
 
     always @(posedge clk, negedge rst) begin
@@ -118,7 +118,7 @@ module inner_product #(parameter number_of_elements = 4)(
         begin
             state <= state_idle;
             rst_mult <= 1;
-            rst_adder <= 1;
+            adder_rst <= 1;
             // ##
             s_row_i_ack <= 0;
             s_column_i_ack <= 0;
@@ -160,10 +160,10 @@ module inner_product #(parameter number_of_elements = 4)(
                     if(output_full_stb) begin
                             state <= state_add_elements;
                             rst_mult <= 1;
-                            rst_adder <= 0;
+                            adder_rst <= 0;
                             inner_product_result <= 0;
-                            in1_stb_adder <= 1;
-                            column_stb_adder <= 1;
+                            adder_in1_stb <= 1;
+                            adder_in2_stb <= 1;
                     end
                     else begin
                             state <= state_wait_for_mult;
@@ -171,10 +171,10 @@ module inner_product #(parameter number_of_elements = 4)(
                     end
             state_add_elements: begin
                     if(index != number_of_elements+1) begin
-                        rst_adder <= 0;
-                        output_ack_adder <= 0;            
-                        in1_stb_adder <= 1;
-                        column_stb_adder <= 1;
+                        adder_rst <= 0;
+                        adder_out_ack <= 0;            
+                        adder_in1_stb <= 1;
+                        adder_in2_stb <= 1;
                                         
                         state <= state_wait_for_add;
                     end else begin
@@ -182,13 +182,13 @@ module inner_product #(parameter number_of_elements = 4)(
                     end
                 end
                 state_wait_for_add: begin
-                    if (res_ready) begin
-                        inner_product_result <= hResult;
+                    if (adder_out_stb) begin
+                        inner_product_result <= adder_out;
                         index <= index + 1;
-                        in1_stb_adder <= 0;
-                        in1_stb_adder <= 0;
-                        rst_adder <= 1;
-                        output_ack_adder <= 1;
+                        adder_in1_stb <= 0;
+                        adder_in1_stb <= 0;
+                        adder_rst <= 1;
+                        adder_out_ack <= 1;
                         state <= state_add_elements;
                     end 
                     else begin
