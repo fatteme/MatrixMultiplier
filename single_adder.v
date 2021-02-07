@@ -10,21 +10,27 @@ module adder(
         output_z_stb,
         input_a_ack,
         input_b_ack);
+
   input     clk;
   input     rst;
+
   input     [31:0] input_a;
   input     input_a_stb;
   output    input_a_ack;
+
   input     [31:0] input_b;
   input     input_b_stb;
   output    input_b_ack;
+
   output    [31:0] output_z;
   output    output_z_stb;
   input     output_z_ack;
+
   reg       s_output_z_stb;
   reg       [31:0] s_output_z;
   reg       s_input_a_ack;
   reg       s_input_b_ack;
+
   reg       [3:0] state;
   parameter get_a         = 4'd0,
             get_b         = 4'd1,
@@ -45,9 +51,12 @@ module adder(
   reg       a_s, b_s, z_s;
   reg       guard, round_bit, sticky;
   reg       [27:0] sum;
+
   always @(posedge clk)
   begin
+
     case(state)
+
       get_a:
       begin
         s_input_a_ack <= 1;
@@ -57,6 +66,7 @@ module adder(
           state <= get_b;
         end
       end
+
       get_b:
       begin
         s_input_b_ack <= 1;
@@ -66,6 +76,7 @@ module adder(
           state <= unpack;
         end
       end
+      
       unpack:
       begin
         a_m <= {a[22 : 0], 3'd0};
@@ -76,6 +87,7 @@ module adder(
         b_s <= b[31];
         state <= special_cases;
       end
+      
       special_cases:
       begin
         //if a is NaN or b is NaN return NaN 
@@ -138,6 +150,7 @@ module adder(
           state <= align;
         end
       end
+      
       align:
       begin
         if ($signed(a_e) > $signed(b_e)) begin
@@ -152,6 +165,7 @@ module adder(
           state <= add_0;
         end
       end
+      
       add_0:
       begin
         z_e <= a_e;
@@ -169,6 +183,7 @@ module adder(
         end
         state <= add_1;
       end
+      
       add_1:
       begin
         if (sum[27]) begin
@@ -185,6 +200,7 @@ module adder(
         end
         state <= normalise_1;
       end
+      
       normalise_1:
       begin
         if (z_m[23] == 0 && $signed(z_e) > -126) begin
@@ -197,6 +213,7 @@ module adder(
           state <= normalise_2;
         end
       end
+      
       normalise_2:
       begin
         if ($signed(z_e) < -126) begin
@@ -209,6 +226,7 @@ module adder(
           state <= round;
         end
       end
+      
       round:
       begin
         if (guard && (round_bit | sticky | z_m[0])) begin
@@ -220,6 +238,7 @@ module adder(
         state <= pack;
       end
       pack:
+      
       begin
         z[22 : 0] <= z_m[22:0];
         z[30 : 23] <= z_e[7:0] + 127;
@@ -235,6 +254,7 @@ module adder(
         end
         state <= put_z;
       end
+      
       put_z:
       begin
         s_output_z_stb <= 1;
@@ -245,6 +265,7 @@ module adder(
         end
       end
     endcase
+
     if (rst == 1) begin
       state <= get_a;
       s_input_a_ack <= 0;
@@ -252,6 +273,7 @@ module adder(
       s_output_z_stb <= 0;
     end
   end
+
   assign input_a_ack = s_input_a_ack;
   assign input_b_ack = s_input_b_ack;
   assign output_z_stb = s_output_z_stb;
