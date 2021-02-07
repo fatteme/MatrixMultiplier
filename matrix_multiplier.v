@@ -107,7 +107,7 @@ end
 genvar i;
 generate
 	for (i = 0; i<m; i=i+1) begin
-		inner_product #(n) vip(
+		inner_product #(p) vip(
 			.out(vip_result[i*word_width +: word_width]),
 			.row_i_ack(vip_matrix_a_ack[i]),
 			.column_i_ack(vip_column_ack[i]),
